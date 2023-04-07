@@ -1,0 +1,27 @@
+name: App Testing
+
+on: [push]
+
+jobs:
+  android:
+    name: Android Testing
+    runs-on: ubuntu-latest
+    env:
+      AWS_DEVICEFARM_PROJECT_ARN: arn:aws:devicefarm:us-west-2:504319505922:project:8ca7b4f6-ac5c-414a-a0d1-5ec9e9c7be09
+
+    steps:
+      - name: Configure AWS Credentials For Github Actions
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id:
+          aws-secret-access-key:
+          mask-aws-account-id: true
+      - name: Create upload link for apk
+        id: create_upload
+        run: |
+          response=$(aws devicefarm create-upload --project-arn $AWS_DEVICEFARM_PROJECT_ARN --name application.apk --type ANDROID_APP)
+          echo "::set-output name=response::$response"
+      - name: Upload apk file
+        run: |
+          curl -T build/application.apk ${{fromJSON(steps.create_upload.outputs.response).url}}
+
