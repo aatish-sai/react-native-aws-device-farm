@@ -30,4 +30,10 @@ jobs:
       - name: Upload apk file
         run: curl -T build/application.apk ${{steps.create_upload.outputs.upload_url}}
       - name: Schedule Testing
-        run: aws devicefarm schedule-run --project-arn $AWS_DEVICEFARM_PROJECT_ARN --app-arn ${{steps.create_upload.outputs.upload_arn}} --test type="BUILTIN_FUZZ",parameters={event_count:"1"}} --device-selection-configuration {"filters":[{"attribute":"PLATFORM","operator":"EQUALS","values":["ANDROID"]},{"attribute":"OS_VERSION","operator":"EQUALS","values":["11"]}],"maxDevices":2} --name test-commit-${{ github.workflow_sha }} 
+        run: |
+          aws devicefarm schedule-run\
+          --project-arn $AWS_DEVICEFARM_PROJECT_ARN\
+          --app-arn ${{steps.create_upload.outputs.upload_arn}}\
+          --test type="BUILTIN_FUZZ",parameters={event_count:"1"}}\
+          --device-selection-configuration {"filters":[{"attribute":"PLATFORM","operator":"EQUALS","values":["ANDROID"]},{"attribute":"OS_VERSION","operator":"EQUALS","values":["11"]}],"maxDevices":"2"}\
+          --name test-commit-${{ github.workflow_sha }} 
