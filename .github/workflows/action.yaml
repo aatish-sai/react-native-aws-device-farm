@@ -19,7 +19,9 @@ jobs:
           mask-aws-account-id: true
       - name: Create upload link for apk
         id: create_upload
-        run: echo "response=$(aws devicefarm create-upload --project-arn $AWS_DEVICEFARM_PROJECT_ARN --name application.apk --type ANDROID_APP)" >> $GITHUB_OUTPUT
+        run: |
+          response=$(aws devicefarm create-upload --project-arn $AWS_DEVICEFARM_PROJECT_ARN --name application.apk --type ANDROID_APP | jq '.upload.url')
+          echo "upload_url=$response" >> $GITHUB_OUTPUT
       - name: Upload apk file
-        run: curl -T build/application.apk ${{fromJSON(steps.create_upload.outputs.response).upload.url}}
+        run: curl -T build/application.apk ${{steps.create_upload.outputs.upload_url}}
 
