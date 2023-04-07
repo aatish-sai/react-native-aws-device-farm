@@ -1,16 +1,16 @@
 #!/bin/bash
-stauts=0
-while [[ $status -eq 0 ]]
+stauts=true
+while $stauts
 do
     state=$(aws devicefarm get-upload --arn $1 | jq '.upload.status')
     echo "State is $state"
     if [[ $state == "FAILED" ]]
     then
-        $status = 1
+        status=false
     fi
     if [[ $state == "SUCCEEDED" ]]
     then
-        $status = 1
+        status=false
     fi
     sleep 5
 done
