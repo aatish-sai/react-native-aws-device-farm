@@ -23,8 +23,8 @@ jobs:
         id: create_upload
         run: |
           response=$(aws devicefarm create-upload --project-arn $AWS_DEVICEFARM_PROJECT_ARN --name application.apk --type ANDROID_APP)
-          upload_arn=$($response | jq '.upload.arn')
-          upload_url=$($response | jq '.upload.url')
+          upload_arn=$(echo $response | jq '.upload.arn')
+          upload_url=$(echo $response | jq '.upload.url')
           echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
           echo "upload_arn=$upload_arn" >> $GITHUB_OUTPUT
       - name: Upload apk file
