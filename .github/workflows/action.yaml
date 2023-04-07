@@ -29,6 +29,10 @@ jobs:
           echo "upload_arn=$upload_arn" >> $GITHUB_OUTPUT
       - name: Upload apk file
         run: curl -T build/application.apk ${{steps.create_upload.outputs.upload_url}}
+      - name: Wait for upload to be succeed
+        run: |
+          chmod +x ./wait-script.sh
+          ./wait-script.sh
       - name: Schedule Testing
         run: |
           aws devicefarm schedule-run \
