@@ -12,6 +12,23 @@ jobs:
     steps:
       - name: Checkout Github Repo
         uses: actions/checkout@v3
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+          check-latest: true
+      - name: Run NPM Install
+        run: npm ci
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'oracle'
+          java-version: '17'
+          check-latest: true
+      - name: Install EAS
+        run: npm install -g eas
+      - name: Build APK
+        run: eas build --local --platform android --profile preview --non-inateractive --output build.apk
       - name: Configure AWS Credentials For Github Actions
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -22,13 +39,13 @@ jobs:
       - name: Create upload link for apk
         id: create_upload
         run: |
-          response=$(aws devicefarm create-upload --project-arn $AWS_DEVICEFARM_PROJECT_ARN --name application.apk --type ANDROID_APP)
+          response=$(aws devicefarm create-upload --project-arn $AWS_DEVICEFARM_PROJECT_ARN --name application-${{ github.workflow_sha}}.apk --type ANDROID_APP)
           upload_arn=$(echo $response | jq '.upload.arn')
           upload_url=$(echo $response | jq '.upload.url')
           echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
           echo "upload_arn=$upload_arn" >> $GITHUB_OUTPUT
       - name: Upload apk file
-        run: curl -T build/application.apk ${{steps.create_upload.outputs.upload_url}}
+        run: curl -T build.apk ${{steps.create_upload.outputs.upload_url}}
       - name: Wait for upload to be succeed
         run: |
           chmod +x ./wait-script.sh
