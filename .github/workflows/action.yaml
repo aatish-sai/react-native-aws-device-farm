@@ -17,6 +17,11 @@ jobs:
         with:
           node-version: '16.x'
           check-latest: true
+      - name: Setup expo and eas
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
       - name: Run NPM Install
         run: npm ci
       - name: Setup Java
@@ -25,10 +30,8 @@ jobs:
           distribution: 'oracle'
           java-version: '17'
           check-latest: true
-      - name: Install EAS
-        run: npm install -g eas
       - name: Build APK
-        run: eas build --local --platform android --profile preview --non-inateractive --output build.apk
+        run: eas build --local --platform android --profile preview --non-interactive --output build.apk
       - name: Configure AWS Credentials For Github Actions
         uses: aws-actions/configure-aws-credentials@v2
         with:
