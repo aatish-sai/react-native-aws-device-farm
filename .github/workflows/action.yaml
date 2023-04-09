@@ -69,6 +69,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Download Artifact 
         uses: actions/download-artifact@v3
+      - name: Display downloaded file
+        run: ls -R
       - name: Configure AWS Credentials For Github Actions
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -85,7 +87,7 @@ jobs:
           echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
           echo "upload_arn=$upload_arn" >> $GITHUB_OUTPUT
       - name: Upload apk file
-        run: curl -T build.apk ${{steps.create_upload.outputs.upload_url}}
+        run: curl -T build.apk/build.apk ${{steps.create_upload.outputs.upload_url}}
       - name: Wait for upload to be succeed
         run: |
           chmod +x ./wait-script.sh
@@ -100,8 +102,7 @@ jobs:
           echo "upload_arn=$upload_arn" >> $GITHUB_OUTPUT
           echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
       - name: Upload Test Package
-        working-directory: ./test
-        run: curl -T package.zip ${{steps.create_test.outputs.upload_url}}
+        run: curl -T package.zip/package.zip ${{steps.create_test.outputs.upload_url}}
       - name: Wait for test package upload to be succeed
         run: |
           chmod +x ./wait-script.sh
