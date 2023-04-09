@@ -1,3 +1,6 @@
 android/
 package/
 node_modules/
+*.apk
+*.tgz
+*.zip

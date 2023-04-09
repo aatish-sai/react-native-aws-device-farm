@@ -1,0 +1,21 @@
+{
+  "name": "react-native-aws-device-farm-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "test_native_andoird.test.js",
+  "scripts": {
+    "test": "mocha *.test.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chai": "^4.3.7",
+    "mocha": "^10.2.0",
+    "wd": "^1.14.0"
+  },
+  "bundledDependencies": [
+    "chai",
+    "mocha",
+    "wd"
+  ]
+}
