@@ -65,6 +65,8 @@ jobs:
     env:
       AWS_DEVICEFARM_PROJECT_ARN: arn:aws:devicefarm:us-west-2:504319505922:project:8ca7b4f6-ac5c-414a-a0d1-5ec9e9c7be09
     steps:
+      - name: Checkout Github Repo
+        uses: actions/checkout@v3
       - name: Download Artifact 
         uses: actions/download-artifact@v3
       - name: Configure AWS Credentials For Github Actions
