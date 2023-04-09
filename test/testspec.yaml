@@ -2,6 +2,11 @@ version: 0.1
 phases:
   install:
     commands:
+
+      - export APPIUM_VERSION=1.22.3
+      - avm $APPIUM_VERSION
+      - ln -s /usr/local/avm/versions/$APPIUM_VERSION/node_modules/.bin/appium  /usr/local/avm/versions/$APPIUM_VERSION/node_modules/appium/bin/appium.js
+
       - echo "Navigate to test package directory"
       - cd $DEVICEFARM_TEST_PACKAGE_PATH
       - npm install *.tgz
