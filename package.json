@@ -16,7 +16,20 @@
     "react-native": "0.71.6"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "chai": "^4.3.7",
+    "mocha": "^10.2.0",
+    "wd": "^1.14.0"
   },
-  "private": true
+  "private": true,
+  "bundleDependecies": [
+    "chai",
+    "mocha",
+    "wd"
+  ],
+  "bundledDependencies": [
+    "chai",
+    "mocha",
+    "wd"
+  ]
 }
