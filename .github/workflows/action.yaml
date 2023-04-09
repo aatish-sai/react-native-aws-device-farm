@@ -65,6 +65,8 @@ jobs:
     env:
       AWS_DEVICEFARM_PROJECT_ARN: arn:aws:devicefarm:us-west-2:504319505922:project:8ca7b4f6-ac5c-414a-a0d1-5ec9e9c7be09
     steps:
+      - uses: actions/checkout@v3
+
       - name: Download Artifact 
         uses: actions/download-articaft@v3
       - name: Configure AWS Credentials For Github Actions
@@ -100,7 +102,10 @@ jobs:
       - name: Upload Test Package
         working-directory: ./test
         run: curl -T package.zip ${{steps.create_test.outputs.upload_url}}
-
+      - name: Wait for test package upload to be succeed
+        run: |
+          chmod +x ./wait-script.sh
+          ./wait-script.sh ${{ steps.create_test.outputs.upload_arn}}
       - name: Create upload link for test spec
         id: create_test_spec
         run: |
@@ -112,6 +117,10 @@ jobs:
       - name: Upload Test Spec file
         working-directory: ./test
         run: curl -T testspec.yaml ${{steps.create_test_spec.outputs.upload_url}}
+      - name: Wait for test spec upload to be succeed
+        run: |
+          chmod +x ./wait-script.sh
+          ./wait-script.sh ${{ steps.create_test_spec.outputs.upload_arn}}
       - name: Schedule Testing
         run: |
           aws devicefarm schedule-run \
