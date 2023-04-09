@@ -82,35 +82,38 @@ jobs:
         id: create_upload
         run: |
           response=$(aws devicefarm create-upload --project-arn $AWS_DEVICEFARM_PROJECT_ARN --name application-${{ github.workflow_sha}}.apk --type ANDROID_APP)
-          upload_arn=$(echo $response | jq '.upload.arn')
-          upload_url=$(echo $response | jq '.upload.url')
-          echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
-          echo "upload_arn=$upload_arn" >> $GITHUB_OUTPUT
+          echo $response
+          app_upload_arn=$(echo $response | jq '.upload.arn')
+          app_upload_url=$(echo $response | jq '.upload.url')
+          echo "app_upload_url=$app_upload_url" >> $GITHUB_OUTPUT
+          echo "app_upload_arn=$app_upload_arn" >> $GITHUB_OUTPUT
       - name: Upload apk file
-        run: curl -T build.apk/build.apk ${{steps.create_upload.outputs.upload_url}}
+        run: curl -T build.apk/build.apk ${{steps.create_upload.outputs.app_upload_url}}
       - name: Wait for upload to be succeed
         run: |
           chmod +x ./wait-script.sh
-          ./wait-script.sh ${{ steps.create_upload.outputs.upload_arn}}
+          ./wait-script.sh ${{ steps.create_upload.outputs.app_upload_arn}}
 
       - name: Create upload link of test
         id: create_test
         run: |
           response=$(aws devicefarm create-upload --project-arn $AWS_DEVICEFARM_PROJECT_ARN --name test-${{github.workflow_sha}}.zip --type APPIUM_NODE_TEST_PACKAGE)
-          upload_arn=$(echo $response | jq '.upload.arn')
-          upload_url=$(echo $reponse | jq '.upload.url')
-          echo "upload_arn=$upload_arn" >> $GITHUB_OUTPUT
-          echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
+          echo $response
+          test_upload_arn=$(echo $response | jq '.upload.arn')
+          test_upload_url=$(echo $reponse | jq '.upload.url')
+          echo "test_upload_arn=$test_upload_arn" >> $GITHUB_OUTPUT
+          echo "test_upload_url=$test_upload_url" >> $GITHUB_OUTPUT
       - name: Upload Test Package
-        run: curl -T package.zip/package.zip ${{steps.create_test.outputs.upload_url}}
+        run: curl -T package.zip/package.zip ${{steps.create_test.outputs.test_upload_url}}
       - name: Wait for test package upload to be succeed
         run: |
           chmod +x ./wait-script.sh
-          ./wait-script.sh ${{ steps.create_test.outputs.upload_arn}}
+          ./wait-script.sh ${{ steps.create_test.outputs.test_upload_arn}}
       - name: Create upload link for test spec
         id: create_test_spec
         run: |
           response=$(aws devicefarm create-upload --project-arn $AWS_DEVICEFARM_PROJECT_ARN --name test-spec-${{github.workflow_sha}}.yaml --type APPIUM_NOTE_TEST_SPEC)
+          echo $response
           upload_arn=$(echo $response | jq '.upload_arn')
           upload_url=$(echo $response | jq '.upload_url')
           echo "upload_arn=$upload_arn" >> $GITHUB_OUTPUT
