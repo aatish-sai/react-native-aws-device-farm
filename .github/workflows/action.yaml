@@ -3,12 +3,9 @@ name: App Testing
 on: [push]
 
 jobs:
-  android:
-    name: Android Testing
+  build_android:
+    name: Build Android App
     runs-on: ubuntu-latest
-    env:
-      AWS_DEVICEFARM_PROJECT_ARN: arn:aws:devicefarm:us-west-2:504319505922:project:8ca7b4f6-ac5c-414a-a0d1-5ec9e9c7be09
-
     steps:
       - name: Checkout Github Repo
         uses: actions/checkout@v3
@@ -32,6 +29,43 @@ jobs:
           check-latest: true
       - name: Build APK
         run: eas build --local --platform android --profile preview --non-interactive --output build.apk
+      - name: Save Artifact apk
+        uses: actions/upload-artifact@v3
+        with:
+          name: build.apk
+          path: build.apk
+  build_android_test:
+    name: Build Android Test Package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Github Repo
+        uses: actions/checkout@v3
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+          check-latest: true
+      - name: NPM Install test
+        working-directory: ./test
+        run: npm ci && npm install -g npm-bundle
+      - name: Package Test
+        working-directory: ./test
+        run: |
+          npm-bundle
+          zip -r package.zip *.tgz
+      - name: Save Artifact test package
+        uses: actions/upload-artifact@v3
+        with:
+          name: package.zip
+          path: ./test/package.zip
+  upload_test:
+    name: Android Testing
+    runs-on: ubuntu-latest
+    env:
+      AWS_DEVICEFARM_PROJECT_ARN: arn:aws:devicefarm:us-west-2:504319505922:project:8ca7b4f6-ac5c-414a-a0d1-5ec9e9c7be09
+    steps:
+      - name: Download Artifact 
+        uses: actions/download-articaft@v3
       - name: Configure AWS Credentials For Github Actions
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -53,11 +87,35 @@ jobs:
         run: |
           chmod +x ./wait-script.sh
           ./wait-script.sh ${{ steps.create_upload.outputs.upload_arn}}
+
+      - name: Create upload link of test
+        id: create_test
+        run: |
+          response=$(aws devicefarm create-upload --project-arn $AWS_DEVICEFARM_PROJECT_ARN --name test-${{github.workflow_sha}}.zip --type APPIUM_NODE_TEST_PACKAGE)
+          upload_arn=$(echo $response | jq '.upload.arn')
+          upload_url=$(echo $reponse | jq '.upload.url')
+          echo "upload_arn=$upload_arn" >> $GITHUB_OUTPUT
+          echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
+      - name: Upload Test Package
+        working-directory: ./test
+        run: curl -T package.zip ${{steps.create_test.outputs.upload_url}}
+
+      - name: Create upload link for test spec
+        id: create_test_spec
+        run: |
+          response=$(aws devicefarm create-upload --project-arn $AWS_DEVICEFARM_PROJECT_ARN --name test-spec-${{github.workflow_sha}}.yaml --type APPIUM_NOTE_TEST_SPEC)
+          upload_arn=$(echo $response | jq '.upload_arn')
+          upload_url=$(echo $response | jq '.upload_url')
+          echo "upload_arn=$upload_arn" >> $GITHUB_OUTPUT
+          echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
+      - name: Upload Test Spec file
+        working-directory: ./test
+        run: curl -T testspec.yaml ${{steps.create_test_spec.outputs.upload_url}}
       - name: Schedule Testing
         run: |
           aws devicefarm schedule-run \
           --project-arn $AWS_DEVICEFARM_PROJECT_ARN \
           --app-arn ${{steps.create_upload.outputs.upload_arn}} \
-          --test '{"type":"BUILTIN_FUZZ","parameters":{"event_count":"1"}}' \
+          --test '{"type":"APPIUM_NODE", "testPackageArn": ${{ steps.create_test.outputs.upload_arn}}, "testSpecArn": ${{ steps.create_test_spec.outputs.upload_arn}}, "parameters":{"event_count":"1"}}' \
           --device-selection-configuration '{"filters":[{"attribute":"PLATFORM","operator":"EQUALS","values":["ANDROID"]},{"attribute":"OS_VERSION","operator":"EQUALS","values":["11"]}],"maxDevices":2}' \
           --name test-commit-${{ github.workflow_sha }} 
