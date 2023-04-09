@@ -112,7 +112,7 @@ jobs:
       - name: Create upload link for test spec
         id: create_test_spec
         run: |
-          response=$(aws devicefarm create-upload --project-arn $AWS_DEVICEFARM_PROJECT_ARN --name test-spec-${{github.workflow_sha}}.yaml --type APPIUM_NOTE_TEST_SPEC)
+          response=$(aws devicefarm create-upload --project-arn $AWS_DEVICEFARM_PROJECT_ARN --name test-spec-${{github.workflow_sha}}.yaml --type APPIUM_NODE_TEST_SPEC)
           upload_arn=$(echo $response | jq '.upload.arn')
           upload_url=$(echo $response | jq '.upload.url')
           echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
