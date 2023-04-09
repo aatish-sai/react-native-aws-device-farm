@@ -61,6 +61,7 @@ jobs:
   upload_test:
     name: Android Testing
     runs-on: ubuntu-latest
+    needs: [build_android, build_android_test]
     env:
       AWS_DEVICEFARM_PROJECT_ARN: arn:aws:devicefarm:us-west-2:504319505922:project:8ca7b4f6-ac5c-414a-a0d1-5ec9e9c7be09
     steps:
